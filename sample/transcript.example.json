@@ -1,0 +1,9 @@
+[
+  { "text": " You", "startMs": 500, "endMs": 760, "timestampMs": 630, "confidence": null },
+  { "text": " can't", "startMs": 760, "endMs": 1020, "timestampMs": 890, "confidence": null },
+  { "text": " improve", "startMs": 1020, "endMs": 1480, "timestampMs": 1250, "confidence": null },
+  { "text": " what", "startMs": 1480, "endMs": 1680, "timestampMs": 1580, "confidence": null },
+  { "text": " you", "startMs": 1680, "endMs": 1820, "timestampMs": 1750, "confidence": null },
+  { "text": " can't", "startMs": 1820, "endMs": 2100, "timestampMs": 1960, "confidence": null },
+  { "text": " measure.", "startMs": 2100, "endMs": 2680, "timestampMs": 2390, "confidence": null }
+]

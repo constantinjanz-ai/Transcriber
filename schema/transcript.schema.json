@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://peec.ai/schemas/transcript.schema.json",
+  "title": "Transcript (word-level captions)",
+  "description": "A JSON array of word-level tokens shaped like the @remotion/captions Caption type. Timestamps are absolute milliseconds from the start of the media and tokens are in chronological order.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["text", "startMs", "endMs", "timestampMs", "confidence"],
+    "properties": {
+      "text": {
+        "type": "string",
+        "description": "One word/token as Whisper emits it, including any leading space."
+      },
+      "startMs": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "Absolute start time in milliseconds from the start of the media."
+      },
+      "endMs": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "Absolute end time in milliseconds. Must be >= startMs."
+      },
+      "timestampMs": {
+        "type": ["integer", "null"],
+        "minimum": 0,
+        "description": "Midpoint of startMs and endMs, or null if unknown."
+      },
+      "confidence": {
+        "type": ["number", "null"],
+        "minimum": 0,
+        "maximum": 1,
+        "description": "Confidence 0-1, or null if the model does not provide it."
+      }
+    }
+  }
+}
