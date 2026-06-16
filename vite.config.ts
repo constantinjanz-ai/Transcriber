@@ -27,7 +27,9 @@ export default defineConfig({
     viteStaticCopy({
       targets: [
         {
-          src: 'node_modules/@huggingface/transformers/dist/*.wasm',
+          // Both the .wasm binary AND its .mjs loader are required — ONNX Runtime
+          // dynamically imports the .mjs, which then fetches the .wasm.
+          src: 'node_modules/@huggingface/transformers/dist/ort-*.{mjs,wasm}',
           dest: '',
         },
       ],
