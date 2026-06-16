@@ -14,9 +14,18 @@ export function isWebGpuAvailable(): boolean {
   return typeof navigator !== 'undefined' && 'gpu' in navigator && !!navigator.gpu;
 }
 
-/** Auto-pick the best available engine. */
+/**
+ * Default engine.
+ *
+ * This tool's core output is WORD-LEVEL timestamps, which require the decoder's
+ * cross-attention outputs. transformers.js only exposes those on the WASM
+ * backend — WebGPU word-level timestamps are not yet supported
+ * (https://github.com/huggingface/transformers.js/issues/820). So we default to
+ * WASM. WebGPU stays available via the toggle for the faster non-timestamp path,
+ * but it will error on word timestamps.
+ */
 export function defaultEngine(): Engine {
-  return isWebGpuAvailable() ? 'webgpu' : 'wasm';
+  return 'wasm';
 }
 
 /**

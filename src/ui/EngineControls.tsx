@@ -1,4 +1,4 @@
-import { ENGINE_LABELS, isWebGpuAvailable, type Engine } from '../asr/device';
+import { ENGINE_LABELS, type Engine } from '../asr/device';
 
 interface EngineControlsProps {
   engine: Engine;
@@ -7,12 +7,11 @@ interface EngineControlsProps {
 }
 
 export function EngineControls({ engine, disabled, onChange }: EngineControlsProps) {
-  const webgpu = isWebGpuAvailable();
   return (
     <fieldset className="control" disabled={disabled}>
       <legend>Engine</legend>
       <div className="segmented" role="radiogroup" aria-label="Compute engine">
-        {(['webgpu', 'wasm'] as Engine[]).map((value) => (
+        {(['wasm', 'webgpu'] as Engine[]).map((value) => (
           <label key={value} className="segmented__option">
             <input
               type="radio"
@@ -26,9 +25,9 @@ export function EngineControls({ engine, disabled, onChange }: EngineControlsPro
         ))}
       </div>
       <p className="control__hint">
-        {webgpu
-          ? 'WebGPU detected. WASM works everywhere as a fallback.'
-          : 'WebGPU not detected in this browser — using WASM (CPU).'}
+        <strong>WASM (CPU) is required for word-level timestamps</strong> and is the
+        default. WebGPU is faster but cannot return word timestamps yet (a
+        transformers.js limitation), so it will error on this tool&rsquo;s output.
       </p>
     </fieldset>
   );
