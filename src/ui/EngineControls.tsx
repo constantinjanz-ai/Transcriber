@@ -25,9 +25,9 @@ export function EngineControls({ engine, disabled, onChange }: EngineControlsPro
         ))}
       </div>
       <p className="control__hint">
-        <strong>WASM (CPU) is required for word-level timestamps</strong> and is the
-        default. WebGPU is faster but cannot return word timestamps yet (a
-        transformers.js limitation), so it will error on this tool&rsquo;s output.
+        <strong>WASM (CPU) is the recommended, reliable engine</strong> for word-level
+        timestamps and is the default. WebGPU is faster but its word-timestamp support
+        is limited — if it errors, switch back to WASM.
       </p>
     </fieldset>
   );

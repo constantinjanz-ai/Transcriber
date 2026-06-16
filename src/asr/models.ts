@@ -17,11 +17,15 @@ export const MODEL_SIZE_INFO: Record<
 
 /**
  * Build the onnx-community repo id for a given size + language mode.
- * English-optimized models use the `.en` suffix and are English-only.
+ *
+ * We use the `_timestamped` exports specifically: they include the decoder
+ * cross-attention outputs that `return_timestamps: 'word'` needs. The standard
+ * `whisper-*` exports omit those, which fails with "Model outputs must contain
+ * cross attentions to extract timestamps." English-optimized models add `.en`.
  */
 export function modelId(size: ModelSize, mode: LanguageMode): string {
-  const suffix = mode === 'english' ? '.en' : '';
-  return `onnx-community/whisper-${size}${suffix}`;
+  const lang = mode === 'english' ? '.en' : '';
+  return `onnx-community/whisper-${size}${lang}_timestamped`;
 }
 
 export interface LanguageOption {
