@@ -2,9 +2,12 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
-// Change `base` if you fork this under a different GitHub repo name.
-// Served at https://<user>.github.io/Transcriber/
-const BASE = '/Transcriber/';
+// Base path differs by host:
+//  - Vercel serves at the domain root            -> '/'
+//  - GitHub Pages serves under the repo sub-path  -> '/Transcriber/'
+// Vercel sets VERCEL=1 during the build, so we switch automatically. Change the
+// Pages fallback if you fork this under a different repo name.
+const BASE = process.env.VERCEL ? '/' : '/Transcriber/';
 
 // Cross-origin isolation enables SharedArrayBuffer -> multithreaded WASM in dev.
 // GitHub Pages cannot send these headers; the app falls back to single-threaded
