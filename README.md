@@ -132,10 +132,10 @@ no backend, no telemetry, and nothing is stored on a server.
 ### A note on speed (WASM threads)
 
 Multithreaded WASM needs cross-origin isolation (`COOP`/`COEP` headers → `SharedArrayBuffer`).
-The dev server sets these automatically. **GitHub Pages can't send custom headers**, so
-the deployed app uses single-threaded WASM (or WebGPU, which doesn't need isolation). To
-unlock multithreaded WASM on Pages you can add the optional
-[`coi-serviceworker`](https://github.com/gzuidhof/coi-serviceworker) shim — not required.
+The dev server sets these automatically. The deployed app currently runs single-threaded
+WASM, which is reliable everywhere. Vercel _can_ send these headers (via a `vercel.json`)
+to unlock multithreaded WASM — left off by default because `COEP: require-corp` needs care
+so it doesn't block the cross-origin Hugging Face model download.
 
 ---
 
@@ -151,16 +151,18 @@ unlock multithreaded WASM on Pages you can add the optional
 
 ---
 
-## Deployment (GitHub Pages)
+## Deployment (Vercel)
 
-- Pushing to `main` runs [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml):
-  it builds and deploys to Pages. Enable **Settings → Pages → Build and deployment →
-  GitHub Actions** once.
+The app is hosted on **Vercel**, connected to this repo's Git integration, so every
+push to `main` builds and deploys automatically.
+
+- **Live app:** https://transcriber-seven-sandy.vercel.app/
 - PRs run [`.github/workflows/ci.yml`](.github/workflows/ci.yml): lint, tests, and a
   build. **Commit `package-lock.json`** (created by `npm install`) — CI uses `npm ci`,
   which requires it.
-- The app is served under a sub-path. `vite.config.ts` sets `base = '/Transcriber/'`;
-  **change it** if your repo has a different name.
+- Base path is host-aware in `vite.config.ts`: Vercel serves at the root (`/`); the
+  fallback (`/Transcriber/`) is for serving under a GitHub Pages-style sub-path. Vercel
+  sets `VERCEL=1` during the build, so the right base is chosen automatically.
 
 ---
 

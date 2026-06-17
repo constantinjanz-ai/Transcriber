@@ -13,6 +13,14 @@ export interface WhisperWord {
 const round = Math.round;
 
 /**
+ * Cap on a single word's duration (ms). Whisper occasionally assigns a wildly
+ * long end time to a word at a pause or a chunk boundary (e.g. a 25s "Perfect.").
+ * Capping keeps captions from lingering on screen downstream. No real spoken
+ * word lasts this long, so legitimate words are unaffected.
+ */
+export const MAX_WORD_DURATION_MS = 2000;
+
+/**
  * Map one chunk's Whisper words to contract `Caption` tokens on a global
  * timeline.
  *
@@ -24,6 +32,7 @@ const round = Math.round;
  * Rules (frozen contract):
  *  - `text` kept verbatim, including Whisper's leading space.
  *  - missing end time falls back to the next word's start, else `chunkEndMs`.
+ *  - a word's duration is capped at `maxWordMs` (see MAX_WORD_DURATION_MS).
  *  - all ms are integers; `endMs >= startMs`; `timestampMs` is the midpoint.
  *  - `confidence` is always null (Whisper does not provide per-word confidence).
  */
@@ -31,6 +40,7 @@ export function captionsFromWords(
   words: WhisperWord[],
   offsetMs: number,
   chunkEndMs: number,
+  maxWordMs: number = MAX_WORD_DURATION_MS,
 ): Caption[] {
   const captions: Caption[] = [];
   let prevEndSec = 0;
@@ -51,6 +61,7 @@ export function captionsFromWords(
     const startMs = round(startSec * 1000) + offsetMs;
     let endMs = round(endSec * 1000) + offsetMs;
     if (endMs < startMs) endMs = startMs;
+    if (endMs - startMs > maxWordMs) endMs = startMs + maxWordMs;
 
     captions.push({
       text: word.text,

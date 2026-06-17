@@ -55,6 +55,20 @@ describe('captionsFromWords', () => {
     expect(Number.isInteger(caps[0].endMs)).toBe(true);
     expect(Number.isInteger(caps[0].timestampMs as number)).toBe(true);
   });
+
+  it('caps an over-long word (pause / chunk-boundary artifact) at maxWordMs', () => {
+    // A trailing word with no end falls back to the chunk end -> 30s long.
+    const words: WhisperWord[] = [{ text: ' Perfect.', timestamp: [0, null] }];
+    const caps = captionsFromWords(words, 0, 30_000); // default cap = 2000ms
+    expect(caps[0].endMs).toBe(2000);
+    expect(caps[0].timestampMs).toBe(1000);
+  });
+
+  it('leaves normal-length words untouched', () => {
+    const words: WhisperWord[] = [{ text: ' hello', timestamp: [0, 0.6] }];
+    const caps = captionsFromWords(words, 0, 30_000);
+    expect(caps[0].endMs).toBe(600);
+  });
 });
 
 describe('mergeChunkCaptions', () => {
