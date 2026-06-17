@@ -1,9 +1,12 @@
 import type { Caption } from '../schema/types';
 import type { ValidationResult } from '../schema/validate';
+import { languageLabel } from '../asr/language';
 
 interface ResultsProps {
   transcript: Caption[];
   validation: ValidationResult;
+  /** Auto-detected language code, or null (manual language / none). */
+  detectedLanguage?: string | null;
   onDownload: (format: 'json' | 'srt' | 'vtt' | 'txt') => void;
 }
 
@@ -14,7 +17,12 @@ function formatDuration(ms: number): string {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-export function Results({ transcript, validation, onDownload }: ResultsProps) {
+export function Results({
+  transcript,
+  validation,
+  detectedLanguage,
+  onDownload,
+}: ResultsProps) {
   const durationMs = transcript.length ? transcript[transcript.length - 1].endMs : 0;
   const preview = transcript.slice(0, 60);
 
@@ -24,6 +32,7 @@ export function Results({ transcript, validation, onDownload }: ResultsProps) {
         <h2>Transcript ready</h2>
         <p className="results__meta">
           {transcript.length} words · {formatDuration(durationMs)} duration
+          {detectedLanguage ? ` · detected: ${languageLabel(detectedLanguage)}` : ''}
         </p>
       </header>
 

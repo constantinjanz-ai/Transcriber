@@ -31,6 +31,7 @@ export function App() {
     null,
   );
   const [transcript, setTranscript] = useState<Caption[] | null>(null);
+  const [detectedLanguage, setDetectedLanguage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const clientRef = useRef<WhisperClient | null>(null);
@@ -52,6 +53,7 @@ export function App() {
     setStatus('Loading model…');
     setModelPercent(0);
     setTranscribeProgress(null);
+    setDetectedLanguage(null);
     downloadBytes.current.clear();
 
     if (!clientRef.current) clientRef.current = new WhisperClient();
@@ -83,6 +85,7 @@ export function App() {
       const result = await transcribeFile(file, client, config, {
         onStatus: setStatus,
         onProgress: setTranscribeProgress,
+        onLanguageDetected: setDetectedLanguage,
       });
 
       // Guarantee the output honors the frozen contract before we hand it over.
@@ -176,6 +179,7 @@ export function App() {
         <Results
           transcript={transcript}
           validation={validation}
+          detectedLanguage={detectedLanguage}
           onDownload={handleDownload}
         />
       )}

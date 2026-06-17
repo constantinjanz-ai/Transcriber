@@ -1,10 +1,12 @@
 import {
   pipeline,
   env,
+  Tensor,
   type AutomaticSpeechRecognitionPipeline,
 } from '@huggingface/transformers';
 import type { WorkerRequest, WorkerResponse, LoadProgress } from './protocol';
 import type { WhisperWord } from './tokens';
+import { pickLanguageFromLogits } from './language';
 
 // Fetch models from the Hugging Face hub (no bundled local models)...
 env.allowLocalModels = false;
@@ -38,6 +40,20 @@ type Transcribe = (
   audio: Float32Array,
   options: Record<string, unknown>,
 ) => Promise<{ text?: string; chunks?: WhisperWord[] }>;
+
+/** Minimal view of the Whisper pipeline internals used for language detection. */
+interface WhisperInternals {
+  processor: (audio: Float32Array) => Promise<{ input_features: unknown }>;
+  model: ((inputs: {
+    input_features: unknown;
+    decoder_input_ids: Tensor;
+  }) => Promise<{ logits: { data: ArrayLike<number> } }>) & {
+    generation_config: {
+      decoder_start_token_id: number;
+      lang_to_id: Record<string, number>;
+    };
+  };
+}
 
 let transcriber: AutomaticSpeechRecognitionPipeline | null = null;
 let loadedKey: string | null = null;
@@ -96,9 +112,44 @@ async function handleTranscribe(
   });
 }
 
+async function handleDetect(
+  req: Extract<WorkerRequest, { type: 'detect' }>,
+): Promise<void> {
+  if (!transcriber) throw new Error('Model is not loaded.');
+  const { processor, model } = transcriber as unknown as WhisperInternals;
+
+  // Whisper detects language from the token emitted right after
+  // <|startoftranscript|>: run a single decode step and read those logits.
+  const { input_features } = await processor(req.samples);
+  const startId = model.generation_config.decoder_start_token_id;
+  const decoder_input_ids = new Tensor(
+    'int64',
+    new BigInt64Array([BigInt(startId)]),
+    [1, 1],
+  );
+  const { logits } = await model({ input_features, decoder_input_ids });
+  const language = pickLanguageFromLogits(
+    logits.data,
+    model.generation_config.lang_to_id,
+  );
+
+  post({ id: req.id, type: 'detected', language });
+}
+
+function dispatch(req: WorkerRequest): Promise<void> {
+  switch (req.type) {
+    case 'load':
+      return handleLoad(req);
+    case 'transcribe':
+      return handleTranscribe(req);
+    case 'detect':
+      return handleDetect(req);
+  }
+}
+
 ctx.addEventListener('message', (event: MessageEvent<WorkerRequest>) => {
   const req = event.data;
-  const run = req.type === 'load' ? handleLoad(req) : handleTranscribe(req);
+  const run = dispatch(req);
   run.catch((err: unknown) => {
     post({
       id: req.id,

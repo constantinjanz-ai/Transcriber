@@ -18,6 +18,12 @@ export type WorkerRequest =
       language: string;
       /** English-optimized (.en) models ignore language/task. */
       multilingual: boolean;
+    }
+  | {
+      id: number;
+      type: 'detect';
+      /** Up to ~30s of mono 16kHz audio to detect the language from. */
+      samples: Float32Array;
     };
 
 /** A model-download / load progress event forwarded from transformers.js. */
@@ -36,4 +42,5 @@ export type WorkerResponse =
   | { id: number; type: 'progress'; progress: LoadProgress }
   | { id: number; type: 'loaded' }
   | { id: number; type: 'transcribed'; words: WhisperWord[]; text: string }
+  | { id: number; type: 'detected'; language: string }
   | { id: number; type: 'error'; message: string };

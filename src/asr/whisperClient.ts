@@ -89,6 +89,21 @@ export class WhisperClient {
     return res.words;
   }
 
+  /**
+   * Detect the spoken language from up to ~30s of mono 16 kHz audio. Returns a
+   * Whisper language code (e.g. "de"), or "" if none could be determined. The
+   * samples buffer is transferred; do not reuse it afterwards.
+   */
+  async detectLanguage(samples: Float32Array): Promise<string> {
+    const res = await this.send({ id: this.nextId++, type: 'detect', samples }, [
+      samples.buffer,
+    ]);
+    if (res.type !== 'detected') {
+      throw new Error('Unexpected worker response.');
+    }
+    return res.language;
+  }
+
   dispose(): void {
     this.worker.removeEventListener('message', this.onMessage);
     this.worker.terminate();

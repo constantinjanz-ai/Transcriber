@@ -48,10 +48,17 @@ npm run preview  # preview the production build locally
 - **Model size** — `tiny` / `base` / `small`. Larger is more accurate but slower and a
   bigger download.
 - **Language mode** —
-  - **Multilingual** (default): auto-detects the language, or pick one manually
-    (English, German, and more). Use this for Peec's German webinars.
+  - **Multilingual** (default): pick a language (English, German, and more), or leave
+    it on **Auto-detect**. Use this for Peec's German webinars.
   - **English-optimized** (`.en`): faster/more accurate for English-only audio.
 - **Default**: multilingual `base` with auto-detect.
+
+> **Auto-detect** runs a real Whisper language-detection pass on the first ~30 s and
+> locks that language in for the whole file (the detected language is shown in the
+> results). transformers.js itself has no auto-detect — omitting the language silently
+> forces English — so this is implemented here in [`src/asr/language.ts`](src/asr/language.ts)
+> and the worker's `detect` step. If detection ever guesses wrong, just pick the
+> language explicitly.
 
 ---
 

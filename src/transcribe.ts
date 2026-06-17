@@ -19,6 +19,8 @@ export interface TranscribeProgress {
 export interface TranscribeCallbacks {
   onStatus?: (status: string) => void;
   onProgress?: (p: TranscribeProgress) => void;
+  /** Fired with the resolved language code once detected (auto-detect mode). */
+  onLanguageDetected?: (code: string) => void;
 }
 
 const yieldToUi = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
@@ -40,13 +42,24 @@ export async function transcribeFile(
   config: EngineConfig,
   callbacks: TranscribeCallbacks = {},
 ): Promise<Caption[]> {
-  const { onStatus, onProgress } = callbacks;
+  const { onStatus, onProgress, onLanguageDetected } = callbacks;
   const multilingual = config.mode === 'multilingual';
 
   onStatus?.('Decoding & resampling audio…');
   const { samples } = await decodeToMono16k(file);
 
   const chunks = chunkSamples(samples, 16_000, DEFAULT_WINDOW_SECONDS);
+
+  // transformers.js has no built-in auto-detect (it would silently force English),
+  // so when no language is chosen we detect once on the first window and reuse that
+  // language for every chunk.
+  let language = config.language;
+  if (multilingual && !language && chunks.length > 0) {
+    onStatus?.('Detecting language…');
+    language = await client.detectLanguage(chunks[0].samples.slice());
+    if (language) onLanguageDetected?.(language);
+  }
+
   const perChunk: Caption[][] = [];
   let wordCount = 0;
   const startedAt = performance.now();
@@ -57,11 +70,7 @@ export async function transcribeFile(
     // Copy the window into its own buffer before transferring to the worker —
     // the chunk is a subarray view of the shared decode buffer, so transferring
     // the shared buffer directly would detach every other chunk.
-    const words = await client.transcribe(
-      chunk.samples.slice(),
-      config.language,
-      multilingual,
-    );
+    const words = await client.transcribe(chunk.samples.slice(), language, multilingual);
     perChunk.push(captionsFromWords(words, chunk.startMs, chunk.endMs));
     wordCount += words.length;
 
