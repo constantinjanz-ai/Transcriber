@@ -13,6 +13,7 @@ import { validateTranscript, type ValidationResult } from './schema/validate';
 import { transcriptToJson, downloadText } from './export/json';
 import { transcriptToSrt } from './export/srt';
 import { transcriptToVtt } from './export/vtt';
+import { transcriptToText } from './export/txt';
 import type { Caption } from './schema/types';
 import { AudioDecodeError } from './audio/decode';
 
@@ -105,14 +106,16 @@ export function App() {
   }, [file, busy, config, engine]);
 
   const handleDownload = useCallback(
-    (format: 'json' | 'srt' | 'vtt') => {
+    (format: 'json' | 'srt' | 'vtt' | 'txt') => {
       if (!transcript) return;
       if (format === 'json') {
         downloadText(transcriptToJson(transcript), 'transcript.json', 'application/json');
       } else if (format === 'srt') {
         downloadText(transcriptToSrt(transcript), 'transcript.srt', 'text/plain');
-      } else {
+      } else if (format === 'vtt') {
         downloadText(transcriptToVtt(transcript), 'transcript.vtt', 'text/vtt');
+      } else {
+        downloadText(transcriptToText(transcript), 'transcript.txt', 'text/plain');
       }
     },
     [transcript],

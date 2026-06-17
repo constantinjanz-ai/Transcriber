@@ -4,7 +4,7 @@ import type { ValidationResult } from '../schema/validate';
 interface ResultsProps {
   transcript: Caption[];
   validation: ValidationResult;
-  onDownload: (format: 'json' | 'srt' | 'vtt') => void;
+  onDownload: (format: 'json' | 'srt' | 'vtt' | 'txt') => void;
 }
 
 function formatDuration(ms: number): string {
@@ -46,6 +46,9 @@ export function Results({ transcript, validation, onDownload }: ResultsProps) {
       <div className="results__actions">
         <button className="btn btn--primary" onClick={() => onDownload('json')}>
           Download transcript.json
+        </button>
+        <button className="btn" onClick={() => onDownload('txt')}>
+          .txt
         </button>
         <button className="btn" onClick={() => onDownload('srt')}>
           .srt

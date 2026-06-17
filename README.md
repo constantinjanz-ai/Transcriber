@@ -27,7 +27,7 @@ Then:
 1. Drag in (or click to choose) an audio/video file: `.mp4 .mov .m4a .mp3 .wav .webm`.
 2. Pick an engine (auto-detected), model size, and language mode.
 3. Click **Transcribe**. Watch model-download and per-chunk progress.
-4. Click **Download transcript.json** (and optionally `.srt` / `.vtt`).
+4. Click **Download transcript.json** (and optionally `.txt` plain text, or `.srt` / `.vtt` subtitles).
 
 Other scripts:
 
@@ -172,7 +172,7 @@ sample/transcript.example.json  valid example output
 src/
   audio/      decode (browser) · resample (pure) · chunk (pure)
   asr/        worker · client · device select · model registry · token mapping (pure)
-  export/     json · srt · vtt
+  export/     json · txt · srt · vtt
   schema/     types · ajv validator
   ui/         React components
   transcribe.ts   end-to-end orchestration
