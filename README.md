@@ -117,6 +117,42 @@ per-chunk).
 4. **Map to the contract** ([`src/asr/tokens.ts`](src/asr/tokens.ts)) — word
    timestamps are offset onto a **global** timeline; a missing end time falls back to
    the next word's start, then the chunk end.
+5. **Correct brand/jargon** ([`src/corrections/apply.ts`](src/corrections/apply.ts)) —
+   a deterministic pass fixes rare-word mis-transcriptions (see below) before sentence
+   detection, preserving the contract and timestamps.
+
+---
+
+## Fixing brand names & jargon
+
+Whisper mishears rare words ("ChatGPT" → "chat GPT", "Peec" → "Pika", "fan-out" →
+"fan art"). A deterministic correction pass driven by an **editable glossary** fixes
+these after transcription, without touching the output contract.
+
+**To add or change a term, edit [`src/corrections/rules.ts`](src/corrections/rules.ts):**
+
+```ts
+{ canonical: 'Peec', variants: ['Pika', 'PKI', 'Pico'], risky: ['peak'] }
+```
+
+- `canonical` — the exact spelling/casing to output.
+- `variants` — what Whisper produces instead. One word ("grok") → single-token
+  replacement; multiple words ("chat GPT") → those consecutive tokens are **merged**
+  into one (start of the first → end of the last, so timing stays intact).
+- `risky` — variants that are also real words/names ("peak", "Mike", "roofers").
+  These only fire when corrections run with `includeRisky: true`, which is the default
+  in this Peec-brand tool. Put a variant here if it ever over-corrects.
+
+Matching is case-insensitive and whole-word; the leading space and surrounding
+punctuation are preserved. Phrase merges run before single-word fixes, longest match
+first.
+
+> **Layer 1 (prompt biasing) note:** OpenAI Whisper supports an `initial_prompt` to
+> bias recognition, but the pinned **transformers.js 3.8.1 does not consume it** (the
+> `prompt_ids` field exists but isn't wired into generation, and there's no
+> `get_prompt_ids`). The glossary string is kept in `DOMAIN_PROMPT`
+> ([rules.ts](src/corrections/rules.ts)) ready to enable if a future version adds
+> support; today the deterministic correction pass above is the active, reliable fix.
 
 ### Engine / model
 
@@ -189,6 +225,7 @@ sample/transcript.example.json  valid example output
 src/
   audio/      decode (browser) · resample (pure) · chunk (pure)
   asr/        worker · client · device select · models · token mapping · sentence detection (pure)
+  corrections/ editable brand/jargon glossary (rules) + applyCorrections (pure)
   export/     json · txt · srt · vtt
   schema/     types · ajv validator
   ui/         React components
