@@ -11,6 +11,7 @@ import { DEFAULT_ENGINE_CONFIG, modelId, type EngineConfig } from './asr/models'
 import { transcribeFile, type TranscribeProgress } from './transcribe';
 import { validateTranscript, type ValidationResult } from './schema/validate';
 import { transcriptToJson, downloadText } from './export/json';
+import { downloadBaseName } from './export/filename';
 import { transcriptToSrt } from './export/srt';
 import { transcriptToVtt } from './export/vtt';
 import { transcriptToText } from './export/txt';
@@ -111,17 +112,19 @@ export function App() {
   const handleDownload = useCallback(
     (format: 'json' | 'srt' | 'vtt' | 'txt') => {
       if (!transcript) return;
+      // Name exports after the uploaded file so multiple runs stay distinguishable.
+      const base = downloadBaseName(file?.name);
       if (format === 'json') {
-        downloadText(transcriptToJson(transcript), 'transcript.json', 'application/json');
+        downloadText(transcriptToJson(transcript), `${base}.json`, 'application/json');
       } else if (format === 'srt') {
-        downloadText(transcriptToSrt(transcript), 'transcript.srt', 'text/plain');
+        downloadText(transcriptToSrt(transcript), `${base}.srt`, 'text/plain');
       } else if (format === 'vtt') {
-        downloadText(transcriptToVtt(transcript), 'transcript.vtt', 'text/vtt');
+        downloadText(transcriptToVtt(transcript), `${base}.vtt`, 'text/vtt');
       } else {
-        downloadText(transcriptToText(transcript), 'transcript.txt', 'text/plain');
+        downloadText(transcriptToText(transcript), `${base}.txt`, 'text/plain');
       }
     },
-    [transcript],
+    [transcript, file],
   );
 
   return (
@@ -180,6 +183,7 @@ export function App() {
           transcript={transcript}
           validation={validation}
           detectedLanguage={detectedLanguage}
+          baseName={downloadBaseName(file?.name)}
           onDownload={handleDownload}
         />
       )}

@@ -7,6 +7,8 @@ interface ResultsProps {
   validation: ValidationResult;
   /** Auto-detected language code, or null (manual language / none). */
   detectedLanguage?: string | null;
+  /** Base name (no extension) used for the downloaded files. */
+  baseName: string;
   onDownload: (format: 'json' | 'srt' | 'vtt' | 'txt') => void;
 }
 
@@ -21,6 +23,7 @@ export function Results({
   transcript,
   validation,
   detectedLanguage,
+  baseName,
   onDownload,
 }: ResultsProps) {
   const durationMs = transcript.length ? transcript[transcript.length - 1].endMs : 0;
@@ -54,7 +57,7 @@ export function Results({
 
       <div className="results__actions">
         <button className="btn btn--primary" onClick={() => onDownload('json')}>
-          Download transcript.json
+          Download {baseName}.json
         </button>
         <button className="btn" onClick={() => onDownload('txt')}>
           .txt
