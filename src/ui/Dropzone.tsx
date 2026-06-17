@@ -78,14 +78,24 @@ export function Dropzone({ file, disabled, onFile, onReject }: DropzoneProps) {
         disabled={disabled}
         onChange={(e) => handleFiles(e.target.files)}
       />
-      <p className="dropzone__title">
-        {file ? file.name : 'Drop an audio or video file here'}
-      </p>
-      <p className="dropzone__hint">
-        {file
-          ? `${(file.size / 1_000_000).toFixed(1)} MB — click to choose a different file`
-          : `Click to browse · ${ACCEPTED_EXTENSIONS.join('  ')}`}
-      </p>
+      <div className="winbar" aria-hidden="true">
+        <span className="winbar__dots">
+          <i className="winbar__dot winbar__dot--accent" />
+          <i className="winbar__dot" />
+          <i className="winbar__dot" />
+        </span>
+        <span className="winbar__label">UPLOAD</span>
+      </div>
+      <div className="dropzone__target">
+        <p className="dropzone__title">
+          {file ? file.name : 'Drop an audio or video file here'}
+        </p>
+        <p className="dropzone__hint">
+          {file
+            ? `${(file.size / 1_000_000).toFixed(1)} MB — click to choose a different file`
+            : `Click to browse · ${ACCEPTED_EXTENSIONS.join('  ')}`}
+        </p>
+      </div>
     </div>
   );
 }

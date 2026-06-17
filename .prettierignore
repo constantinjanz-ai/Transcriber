@@ -4,3 +4,4 @@ public
 sample
 package-lock.json
 *.md
+.claude
