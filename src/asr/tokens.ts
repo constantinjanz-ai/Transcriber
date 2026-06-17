@@ -69,6 +69,8 @@ export function captionsFromWords(
       endMs,
       timestampMs: round((startMs + endMs) / 2),
       confidence: null,
+      // Placeholder; set by markSentenceEnds() over the full merged transcript.
+      isSentenceEnd: false,
     });
 
     prevEndSec = endSec;

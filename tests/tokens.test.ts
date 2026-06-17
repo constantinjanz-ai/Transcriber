@@ -20,6 +20,7 @@ describe('captionsFromWords', () => {
       endMs: 30_260,
       timestampMs: 30_130,
       confidence: null,
+      isSentenceEnd: false,
     });
     expect(caps[1].text).toBe(" can't");
     expect(caps[1].startMs).toBe(30_260);

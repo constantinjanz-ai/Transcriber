@@ -17,6 +17,7 @@ const goodToken = (): Caption => ({
   endMs: 100,
   timestampMs: 50,
   confidence: null,
+  isSentenceEnd: false,
 });
 
 describe('validateTranscript', () => {
@@ -61,6 +62,15 @@ describe('validateTranscript', () => {
     const token = goodToken() as Partial<Caption>;
     delete token.confidence;
     expect(validateTranscript([token]).valid).toBe(false);
+  });
+
+  it('requires isSentenceEnd and rejects a non-boolean value', () => {
+    const missing = goodToken() as Partial<Caption>;
+    delete missing.isSentenceEnd;
+    expect(validateTranscript([missing]).valid).toBe(false);
+    expect(validateTranscript([{ ...goodToken(), isSentenceEnd: 'yes' }]).valid).toBe(
+      false,
+    );
   });
 
   it('rejects confidence out of range', () => {

@@ -8,6 +8,7 @@ const cap = (text: string, startMs: number, endMs: number): Caption => ({
   endMs,
   timestampMs: Math.round((startMs + endMs) / 2),
   confidence: null,
+  isSentenceEnd: false,
 });
 
 describe('transcriptToText', () => {

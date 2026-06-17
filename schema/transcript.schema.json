@@ -7,7 +7,14 @@
   "items": {
     "type": "object",
     "additionalProperties": false,
-    "required": ["text", "startMs", "endMs", "timestampMs", "confidence"],
+    "required": [
+      "text",
+      "startMs",
+      "endMs",
+      "timestampMs",
+      "confidence",
+      "isSentenceEnd"
+    ],
     "properties": {
       "text": {
         "type": "string",
@@ -33,6 +40,10 @@
         "minimum": 0,
         "maximum": 1,
         "description": "Confidence 0-1, or null if the model does not provide it."
+      },
+      "isSentenceEnd": {
+        "type": "boolean",
+        "description": "True when this token ends a sentence. Extension beyond the base @remotion/captions Caption shape."
       }
     }
   }

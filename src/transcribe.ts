@@ -1,6 +1,7 @@
 import { decodeToMono16k } from './audio/decode';
 import { chunkSamples, DEFAULT_WINDOW_SECONDS } from './audio/chunk';
 import { captionsFromWords, mergeChunkCaptions } from './asr/tokens';
+import { markSentenceEnds } from './asr/sentences';
 import type { WhisperClient } from './asr/whisperClient';
 import type { Caption } from './schema/types';
 import type { EngineConfig } from './asr/models';
@@ -77,5 +78,7 @@ export async function transcribeFile(
     await yieldToUi();
   }
 
-  return mergeChunkCaptions(perChunk);
+  // Mark sentence ends over the whole transcript so the next-token lookup spans
+  // chunk boundaries.
+  return markSentenceEnds(mergeChunkCaptions(perChunk));
 }

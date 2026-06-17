@@ -57,23 +57,31 @@ npm run preview  # preview the production build locally
 
 ## The output contract (frozen)
 
-`transcript.json` is a JSON **array** of word-level tokens (the `@remotion/captions`
-`Caption` shape). Treat this format as frozen — the downstream pipeline depends on it.
+`transcript.json` is a JSON **array** of word-level tokens. The first five fields are
+the `@remotion/captions` `Caption` shape; `isSentenceEnd` is an additive extension.
 
 ```json
 [
-  { "text": " You", "startMs": 500, "endMs": 760, "timestampMs": 630, "confidence": null },
-  { "text": " can't", "startMs": 760, "endMs": 1020, "timestampMs": 890, "confidence": null }
+  { "text": " You", "startMs": 500, "endMs": 760, "timestampMs": 630, "confidence": null, "isSentenceEnd": false },
+  { "text": " measure.", "startMs": 2100, "endMs": 2680, "timestampMs": 2390, "confidence": null, "isSentenceEnd": true }
 ]
 ```
 
-| Field         | Type                | Notes                                                        |
-| ------------- | ------------------- | ------------------------------------------------------------ |
-| `text`        | string              | One token as Whisper emits it. **Leading space is kept.**    |
-| `startMs`     | integer             | Absolute ms from start of media.                             |
-| `endMs`       | integer             | Absolute ms; always `>= startMs`.                            |
-| `timestampMs` | integer \| null     | Midpoint of start/end, or `null` if unknown.                 |
-| `confidence`  | number (0–1) \| null| `null` — Whisper does not provide per-word confidence here.  |
+| Field           | Type                 | Notes                                                            |
+| --------------- | -------------------- | ---------------------------------------------------------------- |
+| `text`          | string               | One token as Whisper emits it. **Leading space is kept.**        |
+| `startMs`       | integer              | Absolute ms from start of media.                                 |
+| `endMs`         | integer              | Absolute ms; always `>= startMs`.                                |
+| `timestampMs`   | integer \| null      | Midpoint of start/end, or `null` if unknown.                     |
+| `confidence`    | number (0–1) \| null | `null` — Whisper does not provide per-word confidence here.      |
+| `isSentenceEnd` | boolean              | `true` on the token that ends a sentence (heuristic, see below). |
+
+> **`isSentenceEnd` extends the base Caption shape.** It's additive — consumers that
+> ignore unknown fields are unaffected — but anything validating strictly against the
+> bare `@remotion/captions` type must allow it. Detection is heuristic
+> ([`src/asr/sentences.ts`](src/asr/sentences.ts)): `!`/`?`/`…` always end a sentence;
+> `.` ends one unless it's an abbreviation, URL, decimal, or ordinal, with a
+> next-token-starts-capital check.
 
 Tokens are in chronological order across the whole file (offsets are **global**, not
 per-chunk).
@@ -173,7 +181,7 @@ schema/transcript.schema.json   frozen contract (JSON Schema)
 sample/transcript.example.json  valid example output
 src/
   audio/      decode (browser) · resample (pure) · chunk (pure)
-  asr/        worker · client · device select · model registry · token mapping (pure)
+  asr/        worker · client · device select · models · token mapping · sentence detection (pure)
   export/     json · txt · srt · vtt
   schema/     types · ajv validator
   ui/         React components
