@@ -12,6 +12,7 @@ import { transcribeFile, type TranscribeProgress } from './transcribe';
 import { validateTranscript, type ValidationResult } from './schema/validate';
 import { transcriptToJson, downloadText } from './export/json';
 import { downloadBaseName } from './export/filename';
+import { replaceTokenText } from './corrections/editToken';
 import { transcriptToSrt } from './export/srt';
 import { transcriptToVtt } from './export/vtt';
 import { transcriptToText } from './export/txt';
@@ -127,6 +128,10 @@ export function App() {
     [transcript, file],
   );
 
+  const handleEditToken = useCallback((index: number, text: string) => {
+    setTranscript((prev) => (prev ? replaceTokenText(prev, index, text) : prev));
+  }, []);
+
   return (
     <main className="app">
       <header className="app__header">
@@ -185,6 +190,7 @@ export function App() {
           detectedLanguage={detectedLanguage}
           baseName={downloadBaseName(file?.name)}
           onDownload={handleDownload}
+          onEditToken={handleEditToken}
         />
       )}
 

@@ -1,6 +1,7 @@
 import {
   MODEL_SIZES,
   MODEL_SIZE_INFO,
+  MULTILINGUAL_ONLY_SIZES,
   LANGUAGES,
   type EngineConfig,
   type LanguageMode,
@@ -14,7 +15,8 @@ interface ModelControlsProps {
 }
 
 export function ModelControls({ config, disabled, onChange }: ModelControlsProps) {
-  const isEnglishOnly = config.mode === 'english';
+  const isMultilingualOnly = MULTILINGUAL_ONLY_SIZES.includes(config.size);
+  const isEnglishOnly = config.mode === 'english' && !isMultilingualOnly;
 
   return (
     <fieldset className="control" disabled={disabled}>
@@ -24,7 +26,14 @@ export function ModelControls({ config, disabled, onChange }: ModelControlsProps
           <span>Size</span>
           <select
             value={config.size}
-            onChange={(e) => onChange({ ...config, size: e.target.value as ModelSize })}
+            onChange={(e) => {
+              const size = e.target.value as ModelSize;
+              // Multilingual-only sizes (turbo) have no .en variant — force the mode.
+              const mode = MULTILINGUAL_ONLY_SIZES.includes(size)
+                ? 'multilingual'
+                : config.mode;
+              onChange({ ...config, size, mode });
+            }}
           >
             {MODEL_SIZES.map((size) => (
               <option key={size} value={size}>
@@ -32,12 +41,19 @@ export function ModelControls({ config, disabled, onChange }: ModelControlsProps
               </option>
             ))}
           </select>
+          {config.size === 'turbo' && (
+            <small className="control__hint">
+              Most accurate. Large one-time download (~0.8 GB) and slower on CPU;
+              multilingual only.
+            </small>
+          )}
         </label>
 
         <label className="field">
           <span>Language mode</span>
           <select
-            value={config.mode}
+            value={isMultilingualOnly ? 'multilingual' : config.mode}
+            disabled={isMultilingualOnly}
             onChange={(e) => {
               const mode = e.target.value as LanguageMode;
               // English-only models can't take a language override.

@@ -1,3 +1,4 @@
+import { memo, useRef, useState } from 'react';
 import type { Caption } from '../schema/types';
 import type { ValidationResult } from '../schema/validate';
 import { languageLabel } from '../asr/language';
@@ -10,6 +11,8 @@ interface ResultsProps {
   /** Base name (no extension) used for the downloaded files. */
   baseName: string;
   onDownload: (format: 'json' | 'srt' | 'vtt' | 'txt') => void;
+  /** Commit an edit to a single token's text. */
+  onEditToken?: (index: number, text: string) => void;
 }
 
 function formatDuration(ms: number): string {
@@ -19,15 +22,76 @@ function formatDuration(ms: number): string {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
+/** One word: click to edit, Enter/blur commits, Esc cancels. */
+const EditableToken = memo(function EditableToken({
+  index,
+  text,
+  onCommit,
+}: {
+  index: number;
+  text: string;
+  onCommit: (index: number, text: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const cancelled = useRef(false);
+
+  if (!editing) {
+    return (
+      <span
+        className="token token--editable"
+        role="button"
+        tabIndex={0}
+        title="Click to edit"
+        onClick={() => setEditing(true)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setEditing(true);
+          }
+        }}
+      >
+        {text}
+      </span>
+    );
+  }
+
+  return (
+    <input
+      className="token-input"
+      autoFocus
+      defaultValue={text}
+      size={Math.max(text.trim().length + 1, 3)}
+      onBlur={(e) => {
+        if (cancelled.current) {
+          cancelled.current = false;
+        } else {
+          onCommit(index, e.currentTarget.value);
+        }
+        setEditing(false);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          e.currentTarget.blur();
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          cancelled.current = true;
+          e.currentTarget.blur();
+        }
+      }}
+    />
+  );
+});
+
 export function Results({
   transcript,
   validation,
   detectedLanguage,
   baseName,
   onDownload,
+  onEditToken,
 }: ResultsProps) {
   const durationMs = transcript.length ? transcript[transcript.length - 1].endMs : 0;
-  const preview = transcript.slice(0, 60);
 
   return (
     <section className="results">
@@ -70,14 +134,22 @@ export function Results({
         </button>
       </div>
 
-      <div className="results__preview" aria-label="Transcript preview">
-        {preview.map((cap, i) => (
-          <span key={i} className="token" title={`${cap.startMs}–${cap.endMs} ms`}>
-            {cap.text}
-          </span>
-        ))}
-        {transcript.length > preview.length && (
-          <span className="token token--more">…</span>
+      {onEditToken && (
+        <p className="results__hint">
+          Click any word to fix it — edits are included in every download. (Cmd/Ctrl+F to
+          find a word.)
+        </p>
+      )}
+
+      <div className="results__preview" aria-label="Transcript (click a word to edit)">
+        {transcript.map((cap, i) =>
+          onEditToken ? (
+            <EditableToken key={i} index={i} text={cap.text} onCommit={onEditToken} />
+          ) : (
+            <span key={i} className="token" title={`${cap.startMs}–${cap.endMs} ms`}>
+              {cap.text}
+            </span>
+          ),
         )}
       </div>
     </section>

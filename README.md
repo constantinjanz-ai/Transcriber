@@ -45,8 +45,12 @@ npm run preview  # preview the production build locally
 - **Engine** — **WebGPU** is used automatically when available (recent Chrome/Edge),
   otherwise **WASM** (CPU) everywhere. You can switch manually; if WebGPU fails to
   initialize, switch to WASM and try again.
-- **Model size** — `tiny` / `base` / `small`. Larger is more accurate but slower and a
-  bigger download.
+- **Model size** — `tiny` / `base` / `small` / **`turbo`** (Whisper large-v3-turbo).
+  Larger is more accurate but slower and a bigger download. **Turbo** is the most
+  accurate (best for German + brand/jargon names) — ~0.8 GB one-time download, slower
+  on CPU, and multilingual-only.
+- **Edit before download** — in the results, **click any word to fix it**; the change
+  is included in every export (timestamps untouched). Use Cmd/Ctrl+F to find a word.
 - **Language mode** —
   - **Multilingual** (default): pick a language (English, German, and more), or leave
     it on **Auto-detect**. Use this for Peec's German webinars.
@@ -183,10 +187,12 @@ no backend, no telemetry, and nothing is stored on a server.
 ### A note on speed (WASM threads)
 
 Multithreaded WASM needs cross-origin isolation (`COOP`/`COEP` headers → `SharedArrayBuffer`).
-The dev server sets these automatically. The deployed app currently runs single-threaded
-WASM, which is reliable everywhere. Vercel _can_ send these headers (via a `vercel.json`)
-to unlock multithreaded WASM — left off by default because `COEP: require-corp` needs care
-so it doesn't block the cross-origin Hugging Face model download.
+The dev server sets these, and **Vercel sends them too** via [`vercel.json`](vercel.json),
+so the deployed app runs **multithreaded** WASM (the worker sets `numThreads` from
+`navigator.hardwareConcurrency` when `crossOriginIsolated`) — meaningfully faster CPU
+transcription in Chrome/Edge. The Hugging Face model download (a CORS `fetch`) and the
+Google Fonts both load fine under `require-corp`. Where isolation isn't available, it
+falls back to single-threaded automatically.
 
 ---
 

@@ -541,6 +541,34 @@ select:disabled {
   color: var(--muted);
 }
 
+.token--editable {
+  cursor: text;
+  border-radius: 2px;
+}
+
+.token--editable:hover {
+  background: #fdf3cf; /* faint marigold tint */
+  box-shadow: inset 0 -2px 0 var(--marigold);
+}
+
+.token-input {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.2;
+  color: var(--ink);
+  background: var(--surface);
+  border: 2px solid var(--cobalt);
+  border-radius: 2px;
+  padding: 0 0.15rem;
+  margin: 0 1px;
+}
+
+.results__hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
 /* ---------- Footer ---------- */
 .app__footer {
   margin-top: 1rem;

@@ -15,6 +15,15 @@ env.allowLocalModels = false;
 // GitHub Pages without a CDN dependency.
 if (env.backends?.onnx?.wasm) {
   env.backends.onnx.wasm.wasmPaths = import.meta.env.BASE_URL;
+  // Use multiple WASM threads when the page is cross-origin isolated
+  // (SharedArrayBuffer available — set via COOP/COEP headers in dev and on Vercel).
+  // Falls back to single-threaded everywhere else.
+  const isolated =
+    typeof self !== 'undefined' &&
+    (self as unknown as { crossOriginIsolated?: boolean }).crossOriginIsolated === true;
+  env.backends.onnx.wasm.numThreads = isolated
+    ? Math.min(navigator.hardwareConcurrency || 4, 8)
+    : 1;
 }
 
 // Minimal typed view of the dedicated worker global scope. Declaring it locally

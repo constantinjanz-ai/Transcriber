@@ -1,9 +1,12 @@
 /** Model + language registry for the Whisper ASR engine. */
 
-export type ModelSize = 'tiny' | 'base' | 'small';
+export type ModelSize = 'tiny' | 'base' | 'small' | 'turbo';
 export type LanguageMode = 'english' | 'multilingual';
 
-export const MODEL_SIZES: ModelSize[] = ['tiny', 'base', 'small'];
+export const MODEL_SIZES: ModelSize[] = ['tiny', 'base', 'small', 'turbo'];
+
+/** Sizes that have no English-only (`.en`) variant — multilingual only. */
+export const MULTILINGUAL_ONLY_SIZES: ModelSize[] = ['turbo'];
 
 /** Rough on-disk download sizes (q8/fp16) to set user expectations in the UI. */
 export const MODEL_SIZE_INFO: Record<
@@ -13,6 +16,7 @@ export const MODEL_SIZE_INFO: Record<
   tiny: { label: 'Tiny', approxDownload: '~75 MB' },
   base: { label: 'Base', approxDownload: '~145 MB' },
   small: { label: 'Small', approxDownload: '~485 MB' },
+  turbo: { label: 'Large v3 Turbo', approxDownload: '~0.8 GB' },
 };
 
 /**
@@ -21,9 +25,15 @@ export const MODEL_SIZE_INFO: Record<
  * We use the `_timestamped` exports specifically: they include the decoder
  * cross-attention outputs that `return_timestamps: 'word'` needs. The standard
  * `whisper-*` exports omit those, which fails with "Model outputs must contain
- * cross attentions to extract timestamps." English-optimized models add `.en`.
+ * cross attentions to extract timestamps."
+ *
+ * English-optimized models add `.en`, EXCEPT sizes with no English-only variant
+ * (e.g. `turbo`), which are multilingual-only and use a distinct repo name.
  */
 export function modelId(size: ModelSize, mode: LanguageMode): string {
+  if (size === 'turbo') {
+    return 'onnx-community/whisper-large-v3-turbo_timestamped';
+  }
   const lang = mode === 'english' ? '.en' : '';
   return `onnx-community/whisper-${size}${lang}_timestamped`;
 }
