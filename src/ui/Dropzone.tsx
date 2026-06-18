@@ -1,18 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-
-export const ACCEPTED_EXTENSIONS = [
-  '.mp4',
-  '.mov',
-  '.m4a',
-  '.mp3',
-  '.wav',
-  '.webm',
-] as const;
-
-export function isAcceptedFile(name: string): boolean {
-  const lower = name.toLowerCase();
-  return ACCEPTED_EXTENSIONS.some((ext) => lower.endsWith(ext));
-}
+import { ACCEPTED_EXTENSIONS, ACCEPT_ATTR, isAcceptedFile } from './accept';
 
 interface DropzoneProps {
   file: File | null;
@@ -29,9 +16,10 @@ export function Dropzone({ file, disabled, onFile, onReject }: DropzoneProps) {
     (files: FileList | null) => {
       const picked = files?.[0];
       if (!picked) return;
-      if (!isAcceptedFile(picked.name)) {
+      if (!isAcceptedFile(picked.name, picked.type)) {
         onReject(
-          `Unsupported file type. Please choose one of: ${ACCEPTED_EXTENSIONS.join(', ')}.`,
+          `Unsupported file type. Please choose an audio or video file ` +
+            `(${ACCEPTED_EXTENSIONS.join(', ')}).`,
         );
         return;
       }
@@ -73,7 +61,7 @@ export function Dropzone({ file, disabled, onFile, onReject }: DropzoneProps) {
       <input
         ref={inputRef}
         type="file"
-        accept={ACCEPTED_EXTENSIONS.join(',')}
+        accept={ACCEPT_ATTR}
         hidden
         disabled={disabled}
         onChange={(e) => handleFiles(e.target.files)}
